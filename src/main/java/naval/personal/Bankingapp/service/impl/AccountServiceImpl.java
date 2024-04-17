@@ -1,15 +1,15 @@
 package naval.personal.Bankingapp.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import naval.personal.Bankingapp.dto.AccountDto;
 import naval.personal.Bankingapp.entity.Account;
 import naval.personal.Bankingapp.mapper.AccountMapper;
 import naval.personal.Bankingapp.repository.AccountRepository;
 import naval.personal.Bankingapp.service.AccountService;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -65,11 +65,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<AccountDto> getAllAccounts() {
-      List<Account> accounts =  accountRepository.findAll();
-      accounts.stream().map((account) -> AccountMapper.mapToAccountDto(account))
-              .collect((Collectors.toList()));
-        return null;
+        List<Account> accounts = accountRepository.findAll();
+        return accounts.stream()
+                      .map(AccountMapper::mapToAccountDto)
+                      .collect(Collectors.toList());
     }
+    
 
     @Override
     public void deleteAccount(Long id) {

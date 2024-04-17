@@ -1,64 +1,142 @@
 package naval.personal.Bankingapp.controller;
 
-import naval.personal.Bankingapp.dto.AccountDto;
-import naval.personal.Bankingapp.service.AccountService;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
-import java.util.Map;
+import naval.personal.Bankingapp.dto.AccountDto;
+import naval.personal.Bankingapp.service.AccountService;
 
-@RestController
-@RequestMapping("/api/accounts")
+@Controller
+@RequestMapping("/accounts")
 public class AccountController {
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    public AccountController(AccountService accountService){
+    public AccountController(AccountService accountService) {
         this.accountService = accountService;
     }
-    //ADD REST API
-    @PostMapping
-    public ResponseEntity<AccountDto> addAccount(@RequestBody AccountDto accountDto){
-        return new ResponseEntity<>(accountService.createAccount(accountDto), HttpStatus.CREATED);
+
+    // Add account form page (for browsers)
+    @GetMapping("/add")
+    public String addAccountForm() {
+        return "add-account"; // Thymeleaf template name
     }
 
-    //GET ACCOUNT API
+    // Process add account form submission (for browsers)
+    @PostMapping("/add")
+    public String addAccount(@ModelAttribute AccountDto accountDto) {
+        accountService.createAccount(accountDto);
+        return "redirect:/accounts"; // Redirect to the account list page
+    }
 
+    // Process add account request (for Postman)
+    @PostMapping("/add/json")
+    @ResponseBody
+    public ResponseEntity<AccountDto> addAccountJson(@RequestBody AccountDto accountDto) {
+        AccountDto createdAccount = accountService.createAccount(accountDto);
+        return new ResponseEntity<>(createdAccount, HttpStatus.CREATED);
+    }
+
+    // Account details page (for browsers)
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDto> getAccountbyId(@PathVariable Long id){
+    public String getAccountById(@PathVariable Long id, Model model) {
         AccountDto accountDto = accountService.getAccountById(id);
-        return ResponseEntity.ok(accountDto);
+        model.addAttribute("account", accountDto);
+        return "account-details"; // Thymeleaf template name
     }
 
-    // DEPOSIT REST API
-    @PutMapping("/{id}/deposit")
-    public  ResponseEntity<AccountDto> deposit(@PathVariable Long id ,
-                                               @RequestBody Map<String, Double> request){
-        Double amount = request.get("amount");
-       AccountDto accountDto = accountService.deposit(id, request.get("amounyt"));
-       return ResponseEntity.ok(accountDto);
+    // Get account details (for Postman)
+    @GetMapping("/{id}/json")
+    @ResponseBody
+    public ResponseEntity<AccountDto> getAccountJson(@PathVariable Long id) {
+        AccountDto accountDto = accountService.getAccountById(id);
+        return new ResponseEntity<>(accountDto, HttpStatus.OK);
     }
 
-    //WITHDRAW REST API
-    @PutMapping("/{id}/withdraw")
-    public ResponseEntity<AccountDto> withdraw (@PathVariable Long id,
-                                                @RequestBody Map<String, Double> request){
-        double amount = request.get("amount");
-        AccountDto accountDto = accountService.withdraw(id, amount);
-        return ResponseEntity.ok(accountDto);
+    // Deposit form page (for browsers)
+    @GetMapping("/{id}/deposit")
+    public String depositForm(@PathVariable Long id, Model model) {
+        model.addAttribute("accountId", id);
+        return "deposit-form"; // Thymeleaf template name
     }
 
-    // GET ALL ACCOUNTS REST API
-    public  ResponseEntity<List<AccountDto>> getAllAccounts(){
+    // Process deposit form submission (for browsers)
+    @PostMapping("/{id}/deposit")
+    public String deposit(@PathVariable Long id, @RequestParam Double amount) {
+        accountService.deposit(id, amount);
+        return "redirect:/accounts/{id}"; // Redirect to account details page
+    }
+
+    // Process deposit request (for Postman)
+    @PostMapping("/{id}/deposit/json")
+    @ResponseBody
+    public ResponseEntity<AccountDto> depositJson(@PathVariable Long id, @RequestParam Double amount) {
+        AccountDto updatedAccount = accountService.deposit(id, amount);
+        return new ResponseEntity<>(updatedAccount, HttpStatus.OK);
+    }
+
+    // Withdrawal form page (for browsers)
+    @GetMapping("/{id}/withdraw")
+    public String withdrawForm(@PathVariable Long id, Model model) {
+        model.addAttribute("accountId", id);
+        return "withdraw-form"; // Thymeleaf template name
+    }
+
+    // Process withdrawal form submission (for browsers)
+    @PostMapping("/{id}/withdraw")
+    public String withdraw(@PathVariable Long id, @RequestParam Double amount) {
+        accountService.withdraw(id, amount);
+        return "redirect:/accounts/{id}"; // Redirect to account details page
+    }
+
+    // Process withdrawal request (for Postman)
+    @PostMapping("/{id}/withdraw/json")
+    @ResponseBody
+    public ResponseEntity<AccountDto> withdrawJson(@PathVariable Long id, @RequestParam Double amount) {
+        AccountDto updatedAccount = accountService.withdraw(id, amount);
+        return new ResponseEntity<>(updatedAccount, HttpStatus.OK);
+    }
+
+    // Account list page (for browsers)
+    @GetMapping
+    public String getAllAccounts(Model model) {
         List<AccountDto> accounts = accountService.getAllAccounts();
-        return ResponseEntity.ok(accounts);
+        model.addAttribute("accounts", accounts);
+        return "account-list"; // Thymeleaf template name
     }
 
-    // DELETE ACCOUNT REST API
+    // Get all accounts (for Postman)
+    @GetMapping("/json")
+    @ResponseBody
+    public ResponseEntity<List<AccountDto>> getAllAccountsJson() {
+        List<AccountDto> accounts = accountService.getAllAccounts();
+        return new ResponseEntity<>(accounts, HttpStatus.OK);
+    }
+
+    // Delete account (for browsers)
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteAccount(@PathVariable Long id){
+    public String deleteAccount(@PathVariable Long id) {
         accountService.deleteAccount(id);
-        return ResponseEntity.ok("Account is deleted successfully");
+        return "redirect:/accounts"; // Redirect to account list page
+    }
+
+    // Delete account (for Postman)
+    @DeleteMapping("/{id}/json")
+    @ResponseBody
+    public ResponseEntity<Void> deleteAccountJson(@PathVariable Long id) {
+        accountService.deleteAccount(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
