@@ -1,0 +1,28 @@
+/* Default background image */
+body {
+    background-image: url('../images/web.webp'); /* Adjust the path as needed */
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* Responsive background image for small screens (e.g., phones) */
+@media only screen and (max-width: 600px) {
+    body {
+        background-image: url('../images/mobile.jpg'); /* Adjust the path as needed */
+    }
+}
+
+/* Button styles */
+.button {
+    background-color: black; /* Set button background color to black */
+    color: white; /* Set button text color to white */
+    padding: 10px 20px; /* Add padding to the button */
+    border: none; /* Remove button border */
+    cursor: pointer; /* Set cursor to pointer */
+    margin-right: 10px; /* Add some margin between buttons */
+}
+
+/* Hover effect */
+.button:hover {
+    background-color: rgb(135, 20, 20); /* Change button background color on hover */
+}
